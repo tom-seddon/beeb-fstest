@@ -42,6 +42,7 @@ List of systems and any oddities encountered.
 * OSFILE A=2/3/4 can modify the current directory if directed to
   change attributes of files in another directory - suspect this is an
   ADFS bug - haven't looked into this in any detail yet
+* OSGBPB directory name retrieval returns a name padded with spaces
 
 ## BeebLink
 
