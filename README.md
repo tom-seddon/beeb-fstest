@@ -7,8 +7,10 @@ even a right or wrong in every case, as the documentation isn't always
 consistent.
 
 The goal is to produce some tests that pass on every filing system
-tested, partly as documentation, and partly as a mini test suite for
-any future filing systems.
+tested (unless any of them do anything obviously ridiculous). This can
+serve partly as documentation of what one can except from the average
+BBC Micro filing system, and partly as a mini test suite for any
+future filing systems.
 
 # how to run
 
@@ -27,25 +29,74 @@ The test will stop with a `STOP` if anything surprising happens.
 access, of course, but some of the checks are a bit slow in BASIC at
 2MHz.
 
+# ADFS/DFS differences
+
+The tests generally do the same actions on all filing systems, but
+there are some unavoidable differences between DFS and ADFS, which the
+tests manage as follows:
+
+* ADFS mode never changes drive; non-ADFS mode selects (but doesn't access)
+  drive 2
+
+* ADFS mode never selects a directory that isn't known to exist;
+  non-ADFS mode does
+  
+* ADFS mode sets file attributes to 3 (WR) or 1 (R); DFS mode sets
+  them to 0 (unlocked) or 8 (locked)
+
 # filing systems tested
 
 List of systems and any oddities encountered.
 
-## DFS 2.24 (Master MOS 3.20)
+## DFS 2.26
 
 * OSFILE A=0 returns 1 in accumulator whether the file was newly
   created or not
+* OSFILE A=7 not supported
+* File names retrieved by OSGBPB are padded to 7 chars with spaces
 
-## ADFS 1.50 (Master MOS 3.20)
+## DFS 2.24 (Master MOS 3.20), DFS 2.45 (Master MOS 3.50)
+
+* OSFILE A=0 returns 1 in accumulator whether the file was newly
+  created or not
+* File names retrieved by OSGBPB are padded to 7 chars with spaces
+  
+## ADFS 1.50 (Master MOS 3.20), ADFS 2.03 (Master MOS 3.50)
 
 * OSFILE A=5 modifies LSB of parameter block attributes only
 * OSFILE A=2/3/4 can modify the current directory if directed to
-  change attributes of files in another directory - suspect this is an
-  ADFS bug - haven't looked into this in any detail yet
-* OSGBPB directory name retrieval returns a name padded with spaces
+  change attributes of files in another directory - suspect this is a
+  bug - haven't looked into this in any detail yet. The tests work
+  around this by doing `*DIR $` after each test
+* Directory and file names retrieved by OSGBPB are padded to 10 chars
+  with spaces
 
 ## BeebLink
 
 * OSFILE A=0 returns 1 in accumulator whether the file was newly
   created or not (this is arguably incorrect, but it's trying to copy
   DFS...)
+* OSFILE A=7 returns 1 in accumulator
+
+## Opus DDOS 3.45, Opus Challenger 1.03
+
+* OSFILE A=0 returns 1 in accumulator whether the file was newly
+  created or not
+* OSFILE treats both bits 1 and 3 of attributes as the locked flag
+* OSFILE A=2/3 can't be used to change load/exec addresses of a locked
+  file - the call fails with a `File locked` BRK
+* OSFILE A=7 not supported
+* Directory and file names retrieved by OSGBPB are padded to 7 chars
+  with spaces
+
+## Opus DDOS 3.45
+
+* `*DIR` doesn't support the `:DRIVE.DIR` syntax.
+
+## failed filing systems
+
+It's possible there's something wrong with the tests, but I've just
+assumed these are FS bugs, and haven't investigated further.
+
+* Opus Challenger 1.01 craps out with a `Bad track format` error when
+  doing OSFILE A=0. Use 1.03 instead
