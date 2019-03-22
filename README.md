@@ -35,18 +35,21 @@ The tests generally do the same actions on all filing systems, but
 there are some unavoidable differences between DFS and ADFS, which the
 tests manage as follows:
 
-* ADFS mode never changes drive; non-ADFS mode selects (but doesn't access)
+* ADFS mode never changes drive; DFS mode selects (but doesn't access)
   drive 2
 
-* ADFS mode never selects a directory that isn't known to exist;
-  non-ADFS mode does
+* ADFS mode never selects a directory that isn't known to exist; DFS
+  mode does
   
 * ADFS mode sets file attributes to 3 (WR) or 1 (R); DFS mode sets
   them to 0 (unlocked) or 8 (locked)
 
-# filing systems tested
+ADFS is detected by checking for filing system 8. Add extra cases if
+necessary. PRs welcome.
 
-List of systems and any oddities encountered.
+# pass
+
+Tests run as-is to completion.
 
 ## DFS 2.26
 
@@ -93,10 +96,32 @@ List of systems and any oddities encountered.
 
 * `*DIR` doesn't support the `:DRIVE.DIR` syntax.
 
-## failed filing systems
+# partial pass
+
+Tests run to completion with minor modifications.
+
+## Watford DDFS 1.53, Watford DDFS 1.54T
+
+The `OSFILE SAVE` and `OSFILE SAVE (REPLACE EXISTING)` tests can be
+modified or removed to cater for the A=0 behaviour.
+
+(Perhaps the OSFILE A=0 requirements should be relaxed when on a
+B/B+? - the Master Reference Manual is pretty clear about what OSFILE
+A=0 does, but none of the B-era docs mention this...)
+
+* OSFILE A=0 doesn't update parameter block bytes 10-13, and sets
+  bytes 14-17 to 0
+* OSFILE A=7 not supported
+* File names retrieved by OSGBPB are padded to 7 chars with spaces
+* OSFILE A=0 returns 1 in accumulator whether the file was newly
+  created or not
+
+# fail
 
 It's possible there's something wrong with the tests, but I've just
-assumed these are FS bugs, and haven't investigated further.
+assumed these are FS bugs.
 
-* Opus Challenger 1.01 craps out with a `Bad track format` error when
-  doing OSFILE A=0. Use 1.03 instead
+## Opus Challenger 1.01
+
+* craps out with a `Bad track format` error when doing OSFILE A=0. Use
+  1.03 instead, which passes
